@@ -1,0 +1,33 @@
+// 声明语法版本
+// 声明包名称
+// 声明启用 rpc
+// 枚举定义
+// 消息定义
+
+syntax = "proto3";
+package person;
+option cc_generic_services = true;
+enum gender{
+    male = 0;
+    female = 1;
+};
+
+message Person{
+    int32 id = 1;
+    string name = 2;
+    gender sex = 3;
+    repeated float scores = 4;
+    map<int32, string> tags = 5;
+};
+
+message PersonRequest{
+    int32 id = 1;
+};
+
+message PersonResponse{
+    Person person = 1;
+};
+
+service PersonService{
+    rpc GetPerson (PersonRequest) returns (PersonResponse);
+};
