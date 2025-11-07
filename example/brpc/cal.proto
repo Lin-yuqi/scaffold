@@ -1,0 +1,20 @@
+
+
+syntax = "proto3";
+
+package cal;
+
+option cc_generic_services = true;
+
+message AddReq {
+  int32 a = 1;
+  int32 b = 2;
+}
+
+message AddRsp{
+    int32 sum = 1;
+} 
+
+service Calservice {
+    rpc Add (AddReq) returns (AddRsp);
+}

@@ -8,6 +8,7 @@
 
 #include "person.pb.h"
 #include <iostream>
+#include <google/protobuf/util/json_util.h>
 
 std::string serialize(){
     person::Person ps;
@@ -51,6 +52,8 @@ int main(){
     std::cout << "Serialized data: " << data << std::endl;
     std::cout << "Unserialized data: " << std::endl;
     unserialize(data);
+
+    
 
     return 0;
 }
