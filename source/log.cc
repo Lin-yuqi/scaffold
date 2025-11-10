@@ -1,4 +1,4 @@
-#include "linlog.h"
+#include "log.h"
 
 namespace linlog {
     //声明全局日志器
