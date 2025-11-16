@@ -25,11 +25,11 @@ struct log_settings{
     bool async = false;               //是否异步
     int level = 1;                    //日志级别 1-debug;2-info;3-warn;4-error; 6-off
     std::string path = "stdout";      //日志文件路径
-    std::string format;               //日志格式 [%H:%M:%S][%-7l]:%v
+    std::string format = "[%H:%M:%S][%-7l]:%v";               //日志格式 [%H:%M:%S][%-7l]:%v
 };
 
 //声明全局日志初始化接口
-extern void linlog_init(const log_settings& settings);
+extern void linlog_init(const log_settings& settings=log_settings());
 
 //声明全局日志器
 extern std::shared_ptr<spdlog::logger> g_logger;

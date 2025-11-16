@@ -1,7 +1,9 @@
 #include "util.h"
 #include "log.h"
 #include <iostream>
-
+#include <random>
+#include <iomanip>
+#include <atomic>
 
 namespace linutil{
 std::optional<std::string> JSON::serialize(const Json::Value &value){
@@ -91,5 +93,39 @@ size_t STR::split(const std::string &src, const std::string &sep, std::vector<st
     return dst.size();
 }
 
+std::string Random::code(size_t len,RandType type){
+    static const char* digit_arr="0123456789";
+    static const char* char_arr="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static const char* mix_arr="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static const size_t MIN_LEN=4;
+    //1根据type选择字符集
+    std::string arr;
+    if(type==RandType::CHAR){
+        arr= char_arr;
+    }else if(type==RandType::DIGIT){
+        arr= digit_arr;
+    }else{ 
+        arr= mix_arr;
+    }
+
+    std::stringstream result;
+    //2循环len-4次，每次随机选择一个字符加入结果
+    std::random_device rd;
+    std::mt19937 generator(rd());
+
+    for(int i=0;i<len;i++){
+        size_t idx=generator()%arr.size();
+        result<<arr[idx];
+    }
+    //3设置一个4字符的自增字符
+    if(len<=MIN_LEN){
+        return result.str();
+    }
+    static std::atomic<unsigned char> inc(0);
+    int num = inc.fetch_add(1);
+    result << std::setw(4) << num;
+    //4组合
+    return result.str();
+}
 
 }

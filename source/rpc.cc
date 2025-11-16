@@ -60,7 +60,7 @@ namespace linrpc{
         if(channels){
             channels->Insert(addr);
         }else{
-            std::cout<<"服务 "<<svc_name<<" 不存在，无法添加节点 "<<addr<<std::endl;
+            DBG("服务 {} 不存在，无法添加节点 {}", svc_name.c_str(), addr.c_str());
         }
     }
 
@@ -69,7 +69,7 @@ namespace linrpc{
         if(channels){
             channels->Remove(addr);
         }else{
-            std::cout<<"服务 "<<svc_name<<" 不存在，无法删除节点 "<<addr<<std::endl;    
+            DBG("服务 {} 不存在，无法删除节点 {}", svc_name.c_str(), addr.c_str()); 
         }
     }
 

@@ -13,6 +13,7 @@
 
 
 
+
 namespace linutil{
     class JSON{
         public:
@@ -29,7 +30,17 @@ namespace linutil{
     class STR {
         public:
             static size_t split(const std::string &src, const std::string &sep, std::vector<std::string> &dst);
+    };
 
+    const size_t UUID_LEN = 16;
+    enum class RandType{
+        CHAR,
+        DIGIT,
+        MIX
+    };
+    class Random {
+        public:
+            static std::string code(size_t len = UUID_LEN,RandType type = RandType::MIX);
     };
 
 }
