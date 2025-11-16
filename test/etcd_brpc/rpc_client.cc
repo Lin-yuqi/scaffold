@@ -1,21 +1,34 @@
-#include "../../source/linrpc.h"
-#include "../../source/linlog.h"
+#include "../../source/rpc.h"
+#include "../../source/log.h"
+#include "../../source/etcd.h"
 #include "cal.pb.h"
 
 int main(){
     // 初始化日志（必须在使用 DBG/INF 等宏之前调用）
     linlog::linlog_init();
 
+    const std::string etcd_addr="http://192.168.86.129:2379";
+    const std::string svc_name="cal";
+
+
     // 0.实例化服务节点管理对象
     linrpc::SvcChannel svcc;
     // 1.添加服务节点
-    svcc.SetWatch("usr");
-    svcc.AddChannel("usr","192.168.86.129:9000");
+    svcc.SetWatch(svc_name);
+
+    auto online_cb=std::bind(&linrpc::SvcChannel::AddChannel,&svcc,std::placeholders::_1,std::placeholders::_2);
+    auto offline_cb=std::bind(&linrpc::SvcChannel::DelChannel,&svcc,std::placeholders::_1,std::placeholders::_2);   
+
+    linsvc::SvcWatcher watcher(etcd_addr,online_cb,offline_cb);
+    watcher.watch();
+
+
     // 2.获取服务节点信道
-    auto channel = svcc.GetChannel("usr");
-    if(!channel){
-        std::cout<<"get channel failed"<<std::endl;
-        return -1;
+    auto channel = svcc.GetChannel(svc_name);
+    while(!channel){
+        ERR("获取服务信道失败，等待中...");
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        channel=svcc.GetChannel(svc_name);
     }
     // 3.发起异步RPC调用
     brpc::Controller* cntl = new brpc::Controller;
