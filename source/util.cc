@@ -1,0 +1,135 @@
+#include "util.h"
+#include "log.h"
+#include <iostream>
+#include <random>
+#include <iomanip>
+#include <atomic>
+
+namespace linutil{
+std::optional<std::string> JSON::serialize(const Json::Value& val, bool styled) {
+    Json::StreamWriterBuilder builder;
+    if (!styled) {
+        builder["indentation"] = "";
+    }
+    std::unique_ptr<Json::StreamWriter> swp(builder.newStreamWriter());
+    std::stringstream ss;
+    int ret = swp->write(val, &ss);
+    if (ret != 0) {
+        ERR("序列化失败！");
+        return std::optional<std::string>();
+    }
+    return ss.str();
+}
+
+std::optional<Json::Value> JSON::unserialize(const std::string &str){
+    std::unique_ptr<Json::CharReader> reader(Json::CharReaderBuilder().newCharReader());
+    Json::Value root;
+    std::string err;
+    bool ret=reader->parse(str.c_str(), str.c_str()+str.size(), &root, &err);
+    if(!ret){
+        ERR("反序列化失败: {}", err.c_str());
+        return std::optional<Json::Value>();
+    }
+    return root;
+}
+
+
+bool FUTIL::read(const std::string &filename, std::string &body) {
+    std::ifstream ifs;
+    ifs.open(filename, std::ios::in|std::ios::binary);
+    if(!ifs.is_open()){
+        ERR("文件打开失败: {}", filename.c_str());
+        return false;   
+    }
+
+    size_t fsz;
+    ifs.seekg(0, std::ios::end);
+    fsz = ifs.tellg();
+    ifs.seekg(0, std::ios::beg);
+    body.resize(fsz);
+    ifs.read(&body[0], fsz);
+    if(ifs.good()==false){
+        ERR("文件读取失败: {}", filename.c_str());
+        ifs.close();
+        return false;   
+    }
+    ifs.close();
+    return true;
+}
+
+bool FUTIL::write(const std::string &filename, const std::string &body){
+    std::ofstream ofs;
+    ofs.open(filename, std::ios::out|std::ios::binary|std::ios::trunc);
+    if(!ofs.is_open()){
+        ERR("文件打开失败: {}", filename.c_str());
+        return false;
+    }
+
+    ofs.write(body.c_str(), body.size());
+
+    if(!ofs.good()){
+        ERR("文件写入失败: {}", filename.c_str());
+        ofs.close();
+        return false;
+    }
+
+    ofs.close();
+    return true;
+}
+
+size_t STR::split(const std::string &src, const std::string &sep, std::vector<std::string> &dst) {
+    size_t pos,idx=0;
+    while(1){
+        pos=src.find(sep,idx);
+        if(pos==std::string::npos){
+            break;
+        }
+        if(pos==idx){
+            idx=pos+sep.size();
+            continue;
+        }
+        dst.push_back(src.substr(idx,pos-idx));
+        idx=pos+sep.size();
+    }
+    if(idx<src.size()){
+        dst.push_back(src.substr(idx,src.size()-idx));
+    }
+    return dst.size();
+}
+
+std::string Random::code(size_t len,RandType type){
+    static const char* digit_arr="0123456789";
+    static const char* char_arr="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static const char* mix_arr="0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    static const size_t MIN_LEN=4;
+    //1根据type选择字符集
+    std::string arr;
+    if(type==RandType::CHAR){
+        arr= char_arr;
+    }else if(type==RandType::DIGIT){
+        arr= digit_arr;
+    }else{ 
+        arr= mix_arr;
+    }
+
+    std::stringstream result;
+    //2循环len-4次，每次随机选择一个字符加入结果
+    std::random_device rd;
+    std::mt19937 generator(rd());
+
+    for(int i=0;i<len;i++){
+        size_t idx=generator()%arr.size();
+        result<<arr[idx];
+    }
+    //3设置一个4字符的自增字符
+    if(len<=MIN_LEN){
+        return result.str();
+    }
+    static std::atomic<unsigned char> inc(0);
+    int num = inc.fetch_add(1);
+    result << std::setw(4) << num;
+    //4组合
+    return result.str();
+}
+
+}
