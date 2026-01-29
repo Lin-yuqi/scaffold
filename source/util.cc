@@ -6,16 +6,19 @@
 #include <atomic>
 
 namespace linutil{
-std::optional<std::string> JSON::serialize(const Json::Value &value){
-    std::unique_ptr<Json::StreamWriter> writer(Json::StreamWriterBuilder().newStreamWriter());
-    std::stringstream ss;
-    int ret = writer->write(value, &ss);
-    if (ret != 0) {
-        ERR("序列化失败");
-        return std::nullopt;
+std::optional<std::string> JSON::serialize(const Json::Value& val, bool styled) {
+    Json::StreamWriterBuilder builder;
+    if (!styled) {
+        builder["indentation"] = "";
     }
-    std::string result = ss.str();
-    return result;
+    std::unique_ptr<Json::StreamWriter> swp(builder.newStreamWriter());
+    std::stringstream ss;
+    int ret = swp->write(val, &ss);
+    if (ret != 0) {
+        ERR("序列化失败！");
+        return std::optional<std::string>();
+    }
+    return ss.str();
 }
 
 std::optional<Json::Value> JSON::unserialize(const std::string &str){
@@ -25,10 +28,11 @@ std::optional<Json::Value> JSON::unserialize(const std::string &str){
     bool ret=reader->parse(str.c_str(), str.c_str()+str.size(), &root, &err);
     if(!ret){
         ERR("反序列化失败: {}", err.c_str());
-        return std::nullopt;
+        return std::optional<Json::Value>();
     }
     return root;
 }
+
 
 bool FUTIL::read(const std::string &filename, std::string &body) {
     std::ifstream ifs;
