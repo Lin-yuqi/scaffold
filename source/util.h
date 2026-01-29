@@ -17,8 +17,8 @@
 namespace linutil{
     class JSON{
         public:
-            static std::optional<std::string> serialize(const Json::Value &value);
-            static std::optional<Json::Value> unserialize(const std::string &str); 
+            static std::optional<std::string> serialize(const Json::Value& val, bool styled = false);
+            static std::optional<Json::Value> unserialize(const std::string& input);
     };
 
     class FUTIL { 
